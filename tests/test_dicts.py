@@ -194,13 +194,13 @@ def test_dict_sort_by_keys_1():
 def test_dicts_sort_by_value_at_key_1():
     l = [{'a': 2, 'b': 1}, {'a': 1, 'b': 2}]
     results = dicts_sort_by_value_at_key(l, 'a')
-    assert results == [{'a': 1, 'b': 2}, {'a': 2, 'b': 1}]
+    assert list(results) == [{'a': 1, 'b': 2}, {'a': 2, 'b': 1}]
     # test immutability
     assert l == [{'a': 2, 'b': 1}, {'a': 1, 'b': 2}]
 
     l = [{'a': 2, 'b': 'foo'}, {'a': 1, 'b': 'z'}, {'a': 2, 'b': 'bar'}]
     results = dicts_sort_by_value_at_key(l, 'a')
-    assert results == [{'a': 1, 'b': 'z'}, {'a': 2, 'b': 'foo'}, {'a': 2, 'b': 'bar'}]
+    assert list(results) == [{'a': 1, 'b': 'z'}, {'a': 2, 'b': 'foo'}, {'a': 2, 'b': 'bar'}]
     # test immutability
     assert l == [{'a': 2, 'b': 'foo'}, {'a': 1, 'b': 'z'}, {'a': 2, 'b': 'bar'}]
 
