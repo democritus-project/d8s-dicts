@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import collections
-import os
-import sys
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
-import decorators
-from typings import ListOfAnys, ListOfDictsAnyKeyAnyVal, DictKey
+from .dicts_temp_utils import copy_first_arg_dict, list_item_types
+
+DictKeyType = Union[str, int, float, complex, tuple, range, frozenset, bytes, memoryview]
 
 python_types_not_allowed_as_dict_keys = (dict, list, set)
 
@@ -29,12 +25,9 @@ def is_dict(possible_dict: Any) -> bool:
 
 
 # TODO: improve the return type on the function below (it should be any type that can be a dictionary key)
-@decorators.map_first_arg
-def dict_keys(dictionary: dict) -> ListOfAnys:
+def dict_keys(dictionary: dict) -> List[Any]:
     """Get the dictionary's keys (as a list)."""
-    from lists import listify
-
-    return listify(dictionary.keys())
+    return list(dictionary.keys())
 
 
 def is_valid_dict_key(key: Any) -> bool:
@@ -44,33 +37,25 @@ def is_valid_dict_key(key: Any) -> bool:
 
 
 # TODO: improve the return type on the function below (it should be any type that can be a dictionary value - which may be Any, so the current return type may be correct.. but double check)
-@decorators.map_first_arg
-def dict_values(dictionary: dict) -> ListOfAnys:
+def dict_values(dictionary: dict) -> List[Any]:
     """Get the dictionary's values (as a list)."""
-    from lists import listify
-
-    return listify(dictionary.values())
+    return list(dictionary.values())
 
 
 # TODO: add a type definition for the `value` parameter
-@decorators.map_first_arg
 def dict_has_value(dictionary: dict, value) -> bool:
     """Return whether or not the dictionary has the given value (without evaluating the value)."""
     return value in dict_values(dictionary)
 
 
 # TODO: improve the return type on the function below
-@decorators.map_first_arg
 def dict_key_types(dictionary: dict) -> list:
     """Return a list with the type of each key in the dictionary."""
-    from lists import list_item_types
-
     keys = dict_keys(dictionary)
     return list_item_types(keys)
 
 
 # TODO: improve the return type on the function below
-@decorators.map_first_arg
 def dict_value_types(dictionary: dict) -> dict:
     """Return a dictionary with the same keys and the type of each value in place of the actual value."""
     types = {}
@@ -81,7 +66,6 @@ def dict_value_types(dictionary: dict) -> dict:
 
 # TODO: add a type definition for the `value` parameter
 # TODO: add a return type on the function below (it should be any type that can be a dictionary key)
-@decorators.map_first_arg
 def dict_keys_with_value(dictionary: dict, value):
     """Find the key(s) in the dictionary which have the given value."""
     keys_with_value = []
@@ -91,7 +75,6 @@ def dict_keys_with_value(dictionary: dict, value):
     return keys_with_value
 
 
-@decorators.map_first_arg
 def dict_sort_by_keys(dictionary: dict, **kwargs) -> collections.OrderedDict:
     """Sort the dictionary based on the dictionary's keys."""
     sorted_dict = collections.OrderedDict()
@@ -103,7 +86,6 @@ def dict_sort_by_keys(dictionary: dict, **kwargs) -> collections.OrderedDict:
     return sorted_dict
 
 
-@decorators.map_first_arg
 def dict_sort_by_values(dictionary: dict, **kwargs) -> collections.OrderedDict:
     """Sort the dictionary based on the dictionary's values."""
     dict_items = dictionary.items()
@@ -115,9 +97,9 @@ def dict_sort_by_values(dictionary: dict, **kwargs) -> collections.OrderedDict:
 
 # TODO: add a type definition for the `key` parameter
 # TODO: convert the key argument to a path
-def dicts_sort_by_value_at_key(dictionaries: ListOfDictsAnyKeyAnyVal, key, **kwargs) -> ListOfDictsAnyKeyAnyVal:
+def dicts_sort_by_value_at_key(dictionaries: List[Dict[Any, Any]], key, **kwargs) -> List[Dict[Any, Any]]:
     """Sort the given dictionaries (we are assuming that we get a list of dictionaries) based on each dictionary's value at the given key."""
-    from lists import list_flatten
+    import more_itertools
 
     # NOTE: a corollary to this function would be a dicts_sorted_by_key_with_value function... it's not implemented, but can be if needed
     temp_dict = collections.OrderedDict()
@@ -128,21 +110,20 @@ def dicts_sort_by_value_at_key(dictionaries: ListOfDictsAnyKeyAnyVal, key, **kwa
         temp_dict = dict_add(temp_dict, value_at_key, dictionary)
     sorted_temp_dict = dict_sort_by_keys(temp_dict, **kwargs)
 
-    sorted_dicts = list_flatten(dict_values(sorted_temp_dict), base_type=dict)
+    sorted_dicts = more_itertools.collapse(dict_values(sorted_temp_dict), base_type=dict)
     return sorted_dicts
 
 
-@decorators.map_first_arg
 def dict_flip(dictionary: dict, *, flatten_values: bool = False, flip_lists_and_sets: bool = False) -> dict:
     """Flip the dictionary's keys and values; all of the values become keys and keys become values."""
-    from python_data import python_copy_deep
+    import copy
 
     new_dict = {}
 
     for key, value in dictionary.items():
         if not is_valid_dict_key(value):
             if flip_lists_and_sets and isinstance(value, (list, set)):
-                temp_dict = python_copy_deep(new_dict)
+                temp_dict = copy.deepcopy(new_dict)
                 for i in value:
                     try:
                         temp_dict = dict_add(temp_dict, i, key)
@@ -160,8 +141,7 @@ def dict_flip(dictionary: dict, *, flatten_values: bool = False, flip_lists_and_
     return new_dict
 
 
-@decorators.map_first_arg
-@decorators.copy_first_arg_dict
+@copy_first_arg_dict
 def dict_delistify_values(dictionary: dict) -> dict:
     """For all values in the given dictionary that are lists whose lengths are one, replace the list of length one with the value in the list."""
     # TODO: it would be nice to be able to do this iteratively throughout a dict... currently it only goes through the first level of values - adding a recursive option would be nice... would this principle apply to other functions in this library?
@@ -171,7 +151,7 @@ def dict_delistify_values(dictionary: dict) -> dict:
     return dictionary
 
 
-def dict_examples(n: int = 10, **kwargs) -> ListOfDictsAnyKeyAnyVal:
+def dict_examples(n: int = 10, **kwargs) -> List[Dict[Any, Any]]:
     """Create n dictionary examples."""
     from hypothesis import strategies as st
 
@@ -181,7 +161,7 @@ def dict_examples(n: int = 10, **kwargs) -> ListOfDictsAnyKeyAnyVal:
     list_strategy = st.lists(st.one_of(*key_strategies), max_size=2)
     values = st.one_of(*key_strategies, list_strategy)
 
-    from hypothesis_data import hypothesis_get_strategy_results
+    from democritus_hypothesis import hypothesis_get_strategy_results
 
     results = hypothesis_get_strategy_results(st.dictionaries, keys, values, n=n, **kwargs)
     return results
@@ -189,8 +169,8 @@ def dict_examples(n: int = 10, **kwargs) -> ListOfDictsAnyKeyAnyVal:
 
 # TODO: update the type definition for the `key` parameter
 # TODO: update the type definition for the `value` parameter
-@decorators.copy_first_arg_dict
-def dict_add(dictionary: Dict[Any, ListOfAnys], key: Any, value: Any) -> Dict[Any, ListOfAnys]:
+@copy_first_arg_dict
+def dict_add(dictionary: Dict[Any, List[Any]], key: Any, value: Any) -> Dict[Any, List[Any]]:
     """Add the given value to the dictionary at the given key. This function expects that all values of the dictionary parameter are lists."""
     if key in dictionary:
         if not isinstance(dictionary[key], list):
@@ -208,12 +188,11 @@ def dicts_diffs(dictionary_a: dict, dictionary_b: dict) -> list:
     import dictdiffer
 
     result = dictdiffer.diff(dictionary_a, dictionary_b)
-    return list(result)
+    return result
 
 
 # TODO: update the type definition for the `key` and `new_key` parameters
-@decorators.map_first_arg
-@decorators.copy_first_arg_dict
+@copy_first_arg_dict
 def dict_copy_value_at_key(dictionary: dict, key: Any, new_key: Any) -> dict:
     """Copy the value at the given key into the new key."""
     dictionary.update({new_key: dictionary.get(key)})
@@ -221,8 +200,7 @@ def dict_copy_value_at_key(dictionary: dict, key: Any, new_key: Any) -> dict:
 
 
 # TODO: update the type definition for the `key` and `new_key` parameters
-@decorators.map_first_arg
-@decorators.copy_first_arg_dict
+@copy_first_arg_dict
 def dict_move_value_at_key(dictionary: dict, old_key: Any, new_key: Any) -> dict:
     """Move the given key and its values into the new key."""
     dictionary = dict_copy_value_at_key(dictionary, old_key, new_key)
@@ -231,8 +209,7 @@ def dict_move_value_at_key(dictionary: dict, old_key: Any, new_key: Any) -> dict
 
 
 # TODO: update the type definition for the `key` parameter
-@decorators.map_first_arg
-@decorators.copy_first_arg_dict
+@copy_first_arg_dict
 def dict_key_delete(dictionary: dict, key: Any) -> dict:
     """Delete the given key from the given dictionary."""
     if key in dictionary:
@@ -240,8 +217,7 @@ def dict_key_delete(dictionary: dict, key: Any) -> dict:
     return dictionary
 
 
-@decorators.map_first_arg
-def dict_delete_items(dictionary: dict, values_to_delete: ListOfAnys = None, keys_to_delete: ListOfAnys = None) -> dict:
+def dict_delete_items(dictionary: dict, values_to_delete: List[Any] = None, keys_to_delete: List[Any] = None) -> dict:
     """Delete all items from the dictionary if the item's value is in values_to_delete or the item's key is in keys_to_delete."""
     # TODO: write a decorator to do this
     if values_to_delete is None:
@@ -253,7 +229,6 @@ def dict_delete_items(dictionary: dict, values_to_delete: ListOfAnys = None, key
     return new_dict
 
 
-@decorators.map_first_arg
 def dict_delete_empty_values(dictionary: dict) -> dict:
     """Delete all key-values pairs from the dictionary if the value is an empty strings, empty list, zero, False or None."""
     empty_values = ('', [], 0, False, None)
@@ -263,30 +238,26 @@ def dict_delete_empty_values(dictionary: dict) -> dict:
 # TODO: write function to find the number of items in the values (counting each item in the list)
 
 
-@decorators.map_first_arg
-def dict_keys_with_max_value(dictionary: dict) -> List[DictKey]:
+def dict_keys_with_max_value(dictionary: dict) -> List[DictKeyType]:
     """."""
     max_value = max(dict_values(dictionary))
     keys = [key for key in dict_keys(dictionary) if dictionary[key] == max_value]
     return keys
 
 
-@decorators.map_first_arg
-def dict_keys_with_min_value(dictionary: dict) -> List[DictKey]:
+def dict_keys_with_min_value(dictionary: dict) -> List[DictKeyType]:
     """."""
     max_value = max(dict_values(dictionary))
     keys = [key for key in dict_keys(dictionary) if dictionary[key] == max_value]
     return keys
 
 
-@decorators.map_first_arg
 def dict_value_with_max_key(dictionary: dict) -> Any:
     """."""
     max_key = max(dict_keys(dictionary))
     return dictionary[max_key]
 
 
-@decorators.map_first_arg
 def dict_value_with_min_key(dictionary: dict) -> Any:
     """."""
     min_key = min(dict_keys(dictionary))

@@ -2,8 +2,6 @@
 
 import pytest
 
-from lists import lists_have_same_items
-
 from democritus_dicts import (
     is_dict,
     dict_keys,
@@ -106,12 +104,12 @@ def test_dicts_diffs_1():
     a = {'a': 1}
     b = {'b': 1}
     result = dicts_diffs(a, b)
-    assert result == [('add', '', [('b', 1)]), ('remove', '', [('a', 1)])]
+    assert list(result) == [('add', '', [('b', 1)]), ('remove', '', [('a', 1)])]
 
     a = {'a': {'b': 2}}
     b = {'a': {'c': 3}}
     result = dicts_diffs(a, b)
-    assert result == [('add', 'a', [('c', 3)]), ('remove', 'a', [('b', 2)])]
+    assert list(result) == [('add', 'a', [('c', 3)]), ('remove', 'a', [('b', 2)])]
 
 
 def test_dict_examples_1():
@@ -138,7 +136,7 @@ def test_dict_keys_with_value_1():
 
 def test_dict_key_types_1():
     result = dict_key_types({'a': 1, 2: 'b', (1, 2, 3): 'bar'})
-    assert lists_have_same_items(result, [str, int, tuple])
+    assert result == [str, int, tuple]
 
 
 def test_dict_has_value_1():
@@ -149,28 +147,25 @@ def test_dict_has_value_1():
 def test_is_dict_1():
     assert is_dict({})
     assert is_dict({1: 2})
-    assert not is_dict([{1: 2}])
 
 
 def test_dict_value_types_1():
-    d = {'a': 1, 'b': 'b', 'c': (1, 2,), 'd': {'a': 1}}
+    d = {
+        'a': 1,
+        'b': 'b',
+        'c': (
+            1,
+            2,
+        ),
+        'd': {'a': 1},
+    }
     results = dict_value_types(d)
     assert results == {'a': int, 'b': str, 'c': tuple, 'd': dict}
-
-    d = [{'a': 1}, {'a': '1'}]
-    results = dict_value_types(d)
-    assert results == [{'a': int}, {'a': str}]
 
 
 def test_dict_copy_value_at_key_1():
     d = {'a': 1, 'b': 2}
     assert dict_copy_value_at_key(d, 'a', 'c') == {'a': 1, 'b': 2, 'c': 1}
-
-    # test mapping first arg
-    assert dict_copy_value_at_key([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}], 'a', 'c') == [
-        {'a': 1, 'b': 2, 'c': 1},
-        {'a': 3, 'b': 4, 'c': 3},
-    ]
 
     # test immutability
     assert d == {'a': 1, 'b': 2}
@@ -381,8 +376,6 @@ def test_dict_key_delete_2():
 
 def test_dict_move_value_at_key_1():
     assert dict_move_value_at_key({'a': 1}, 'a', 'b') == {'b': 1}
-    # test mapping first arg
-    assert dict_move_value_at_key([{'a': 1}, {'a': 2}], 'a', 'b') == [{'b': 1}, {'b': 2}]
 
 
 def test_dict_move_value_at_key_immutability():

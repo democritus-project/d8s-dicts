@@ -1,0 +1,4 @@
+dictdiffer
+democritus-hypothesis @ git+https://github.com/democritus-project/democritus-hypothesis.git#egg=democritus-hypothesis
+hypothesis
+more-itertools
