@@ -1,5 +1,5 @@
+democritus-hypothesis
 dictdiffer
-democritus-hypothesis @ git+https://github.com/democritus-project/democritus-hypothesis.git#egg=democritus-hypothesis
 hypothesis
-more-itertools
 importlib-metadata; python_version < '3.8'
+more-itertools
