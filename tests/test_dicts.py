@@ -2,7 +2,7 @@
 
 import pytest
 
-from democritus_dicts import (
+from d8s_dicts import (
     is_dict,
     dict_keys,
     dict_values,
