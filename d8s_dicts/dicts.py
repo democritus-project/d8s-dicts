@@ -161,7 +161,7 @@ def dict_examples(n: int = 10, **kwargs) -> List[Dict[Any, Any]]:
     list_strategy = st.lists(st.one_of(*key_strategies), max_size=2)
     values = st.one_of(*key_strategies, list_strategy)
 
-    from democritus_hypothesis import hypothesis_get_strategy_results
+    from d8s_hypothesis import hypothesis_get_strategy_results
 
     results = hypothesis_get_strategy_results(st.dictionaries, keys, values, n=n, **kwargs)
     return results

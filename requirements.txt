@@ -1,4 +1,4 @@
-democritus-hypothesis
+d8s-hypothesis
 dictdiffer
 hypothesis
 importlib-metadata; python_version < '3.8'
