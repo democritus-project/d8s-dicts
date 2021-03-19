@@ -1,4 +1,4 @@
-d8s-hypothesis
+d8s-hypothesis==0.3.0
 dictdiffer
 hypothesis
 importlib-metadata; python_version < '3.8'
