@@ -1,5 +1,5 @@
 import collections
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .dicts_temp_utils import copy_first_arg_dict, list_item_types
 
@@ -20,7 +20,7 @@ def dict_filter_by_keys(dictionary: dict, filter_function: Callable) -> dict:
 
 def is_dict(possible_dict: Any) -> bool:
     """Return whether or not the possible_dict is a dictionary."""
-    # TODO: June 2020: I removed the decorators.map_first_arg decorator b/c a list/tuple/set/mappable type could be one of the inputs to this function and I think it is unintuitive to map over a given list rather than returning False b/c the list is not a dict - feel free to reassess
+    # TODO: June 2020: I removed the decorators.map_first_arg decorator b/c a list/tuple/set/mappable type could be one of the inputs to this function and I think it is unintuitive to map over a given list rather than returning False b/c the list is not a dict - feel free to reassess  # noqa: E501
     return isinstance(possible_dict, dict)
 
 
@@ -36,7 +36,7 @@ def is_valid_dict_key(key: Any) -> bool:
     return not type_is_invalid_key
 
 
-# TODO: improve the return type on the function below (it should be any type that can be a dictionary value - which may be Any, so the current return type may be correct.. but double check)
+# TODO: improve the return type on the function below (it should be any type that can be a dictionary value - which may be Any, so the current return type may be correct.. but double check)  # noqa: E501
 def dict_values(dictionary: dict) -> List[Any]:
     """Get the dictionary's values (as a list)."""
     return list(dictionary.values())
@@ -98,11 +98,11 @@ def dict_sort_by_values(dictionary: dict, **kwargs) -> collections.OrderedDict:
 # TODO: add a type definition for the `key` parameter
 # TODO: convert the key argument to a path
 def dicts_sort_by_value_at_key(dictionaries: List[Dict[Any, Any]], key, **kwargs) -> List[Dict[Any, Any]]:
-    """Sort the given dictionaries (we are assuming that we get a list of dictionaries) based on each dictionary's value at the given key."""
+    """Sort the given dictionaries (we are assuming that we get a list of dictionaries) based on each dictionary's value at the given key."""  # noqa: E501
     import more_itertools
 
-    # NOTE: a corollary to this function would be a dicts_sorted_by_key_with_value function... it's not implemented, but can be if needed
-    temp_dict = collections.OrderedDict()
+    # NOTE: a corollary to this function would be a dicts_sorted_by_key_with_value function... it's not implemented, but can be if needed  # noqa: E501
+    temp_dict: collections.OrderedDict = collections.OrderedDict()
     for dictionary in dictionaries:
         # the line below will fail if the key is not present in one of the dictionaries; this is intentional
         value_at_key = dictionary[key]
@@ -111,14 +111,14 @@ def dicts_sort_by_value_at_key(dictionaries: List[Dict[Any, Any]], key, **kwargs
     sorted_temp_dict = dict_sort_by_keys(temp_dict, **kwargs)
 
     sorted_dicts = more_itertools.collapse(dict_values(sorted_temp_dict), base_type=dict)
-    return sorted_dicts
+    return sorted_dicts  # type: ignore[return-value]  # collapse returns an iterator consumed by callers
 
 
 def dict_flip(dictionary: dict, *, flatten_values: bool = False, flip_lists_and_sets: bool = False) -> dict:
     """Flip the dictionary's keys and values; all of the values become keys and keys become values."""
     import copy
 
-    new_dict = {}
+    new_dict: dict = {}
 
     for key, value in dictionary.items():
         if not is_valid_dict_key(value):
@@ -127,8 +127,8 @@ def dict_flip(dictionary: dict, *, flatten_values: bool = False, flip_lists_and_
                 for i in value:
                     try:
                         temp_dict = dict_add(temp_dict, i, key)
-                    except TypeError as e:
-                        message = f'Unable to flip <<{value}>> because it contains items of a type which cannot be the keys for dictionaries.'
+                    except TypeError:
+                        message = f"Unable to flip <<{value}>> because it contains items of a type which cannot be the keys for dictionaries."  # noqa: E501
                         raise TypeError(message)
                 else:
                     new_dict.update(temp_dict)
@@ -143,8 +143,8 @@ def dict_flip(dictionary: dict, *, flatten_values: bool = False, flip_lists_and_
 
 @copy_first_arg_dict
 def dict_delistify_values(dictionary: dict) -> dict:
-    """For all values in the given dictionary that are lists whose lengths are one, replace the list of length one with the value in the list."""
-    # TODO: it would be nice to be able to do this iteratively throughout a dict... currently it only goes through the first level of values - adding a recursive option would be nice... would this principle apply to other functions in this library?
+    """For all values in the given dictionary that are lists whose lengths are one, replace the list of length one with the value in the list."""  # noqa: E501
+    # TODO: it would be nice to be able to do this iteratively throughout a dict... currently it only goes through the first level of values - adding a recursive option would be nice... would this principle apply to other functions in this library?  # noqa: E501
     for k, v in dictionary.items():
         if isinstance(v, list) and len(v) == 1:
             dictionary[k] = v[0]
@@ -171,10 +171,10 @@ def dict_examples(n: int = 10, **kwargs) -> List[Dict[Any, Any]]:
 # TODO: update the type definition for the `value` parameter
 @copy_first_arg_dict
 def dict_add(dictionary: Dict[Any, List[Any]], key: Any, value: Any) -> Dict[Any, List[Any]]:
-    """Add the given value to the dictionary at the given key. This function expects that all values of the dictionary parameter are lists."""
+    """Add the given value to the dictionary at the given key. This function expects that all values of the dictionary parameter are lists."""  # noqa: E501
     if key in dictionary:
         if not isinstance(dictionary[key], list):
-            message = f'The value at the "{key}" key in the dictionary is not a list and the dict_add function requires all values to be a list.'
+            message = f'The value at the "{key}" key in the dictionary is not a list and the dict_add function requires all values to be a list.'  # noqa: E501
             raise TypeError(message)
         dictionary[key].append(value)
     else:
@@ -217,8 +217,10 @@ def dict_key_delete(dictionary: dict, key: Any) -> dict:
     return dictionary
 
 
-def dict_delete_items(dictionary: dict, values_to_delete: List[Any] = None, keys_to_delete: List[Any] = None) -> dict:
-    """Delete all items from the dictionary if the item's value is in values_to_delete or the item's key is in keys_to_delete."""
+def dict_delete_items(
+    dictionary: dict, values_to_delete: Optional[List[Any]] = None, keys_to_delete: Optional[List[Any]] = None
+) -> dict:
+    """Delete all items from the dictionary if the item's value is in values_to_delete or the item's key is in keys_to_delete."""  # noqa: E501
     # TODO: write a decorator to do this
     if values_to_delete is None:
         values_to_delete = []
@@ -230,8 +232,8 @@ def dict_delete_items(dictionary: dict, values_to_delete: List[Any] = None, keys
 
 
 def dict_delete_empty_values(dictionary: dict) -> dict:
-    """Delete all key-values pairs from the dictionary if the value is an empty strings, empty list, zero, False or None."""
-    empty_values = ('', [], 0, False, None)
+    """Delete all key-values pairs from the dictionary if the value is an empty strings, empty list, zero, False or None."""  # noqa: E501
+    empty_values: List[Any] = ["", [], 0, False, None]
     return dict_delete_items(dictionary, values_to_delete=empty_values)
 
 
