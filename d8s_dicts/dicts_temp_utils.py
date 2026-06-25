@@ -20,7 +20,7 @@ def copy_first_arg_dict(func):
     return wrapper
 
 
-def list_item_types(list_arg: list) -> List[str]:
+def list_item_types(list_arg: list) -> List[type]:
     """Return a set containing the types of all items in the list_arg."""
     # TODO: I don't like the fact that this function returns types as a string (see also the dict_key_types function)
     types = [type(item) for item in list_arg]
